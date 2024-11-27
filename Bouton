@@ -1,0 +1,55 @@
+int bouton1 = 2;
+int bouton2 = 3;
+int bouton3 = 4;
+int bouton4 = 5;
+int bouton5 = 6;
+int bouton6 = 7;
+
+int bouton() {
+  int boutonAppuye = 0;
+// Bouton 1
+  if (digitalRead(bouton1) == HIGH){ 
+    boutonAppuye = 1;
+  }
+
+// Bouton 2  
+  if (digitalRead(bouton2) == HIGH){   
+    boutonAppuye = 2;
+  }
+ 
+// Bouton 3  
+  if (digitalRead(bouton3) == HIGH){
+    boutonAppuye = 3;   
+  }
+  
+// Bouton 4  
+  if (digitalRead(bouton4) == HIGH){  
+    boutonAppuye = 4; 
+  }
+  
+// Bouton 5  
+  if (digitalRead(bouton5) == HIGH){ 
+    boutonAppuye = 5;
+  }
+   
+// Bouton 6  
+  if (digitalRead(bouton6) == HIGH){
+    boutonAppuye = 6;  
+  }
+  return boutonAppuye;
+}
+
+void setup() {
+  pinMode(bouton1, INPUT);   
+  pinMode(bouton2, INPUT);   
+  pinMode(bouton3, INPUT);   
+  pinMode(bouton4, INPUT);   
+  pinMode(bouton5, INPUT);   
+  pinMode(bouton6, INPUT);
+  Serial.begin(9600);
+}
+
+void loop(){
+ Serial.println(bouton());
+ delay(500);
+}
