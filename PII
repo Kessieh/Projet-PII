@@ -1,0 +1,119 @@
+int bouton1 = 2;
+int bouton2 = 3;
+int bouton3 = 4;
+int bouton4 = 5;
+int bouton5 = 6;
+int bouton6 = 7;
+
+int Q1 = 1;
+int Q2 = 2;
+int Q3 = 3;
+int Q4 = 4;
+int Q5 = 5; 
+
+int bouton() {
+  int boutonAppuye = 0;
+// Bouton 1
+  if (digitalRead(bouton1) == HIGH){ 
+    boutonAppuye = 1;
+  }
+
+// Bouton 2  
+  if (digitalRead(bouton2) == HIGH){   
+    boutonAppuye = 2;
+  }
+ 
+// Bouton 3  
+  if (digitalRead(bouton3) == HIGH){
+    boutonAppuye = 3;   
+  }
+  
+// Bouton 4  
+  if (digitalRead(bouton4) == HIGH){  
+    boutonAppuye = 4; 
+  }
+  
+// Bouton 5  
+  if (digitalRead(bouton5) == HIGH){ 
+    boutonAppuye = 5;
+  }
+   
+// Bouton 6  
+  if (digitalRead(bouton6) == HIGH){
+    boutonAppuye = 6;  
+  }
+  return boutonAppuye;
+}
+
+
+void message(int valeur){
+  Serial.println(11);
+}
+
+
+
+
+void setup() {
+  pinMode(bouton1, INPUT);   
+  pinMode(bouton2, INPUT);   
+  pinMode(bouton3, INPUT);   
+  pinMode(bouton4, INPUT);   
+  pinMode(bouton5, INPUT);   
+  pinMode(bouton6, INPUT);
+  Serial.begin(9600);
+}
+
+void loop(){
+ /*Serial.println(bouton());
+ delay(500);*/
+ if (bouton() == 6){
+   mode_jeu();
+ }
+ else{
+  mode_apprentissage();
+ }
+}
+
+
+void mode_apprentissage() {
+switch(bouton()){ 
+ case 1: {message(1);}
+ case 2: {message(2);}
+ case 3: {message(3);}
+ case 4: {message(4);}
+ case 5: {message(5);}
+ }
+}
+
+void mode_jeu() {
+  int Question=random(1,6);
+  switch(Question){
+    case 1: {
+      while(bouton()!= 1){
+        message(11);      //message vocal
+        delay(5000);
+        if (bouton()==2 or bouton() ==3 or bouton()==4
+        message(20);      //Message "Mauvaise réponse, réessaie"
+        Serial.println("Mauvaise réponse, réessaie");
+        delay(1000);
+      }
+      message(21);         //Message "Bonne réponse!"
+      delay(1000);
+      Serial.println("Bonne réponse!");
+    }
+    case 2: {      while(bouton()!= 2){
+        message(12);      //message vocal
+        delay(5000);
+        message(20);      //Message "Mauvaise réponse, réessaie"
+        Serial.println("Mauvaise réponse, réessaie");
+        delay(1000);
+      }
+      message(21);         //Message "Bonne réponse!"
+      delay(1000);
+      Serial.println("Bonne réponse!");
+    }
+    case 3: {message(13);}
+    case 4: {message(14);}
+    case 5: {message(15);}
+  }
+}
