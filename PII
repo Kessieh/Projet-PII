@@ -1,3 +1,7 @@
+#include <SoftwareSerial.h>
+#include <DFPlayer_Mini_Mp3.h>
+
+//définition des variables pour le mode apprentissage
 int bouton1 = 2;
 int bouton2 = 3;
 int bouton3 = 4;
@@ -5,53 +9,48 @@ int bouton4 = 5;
 int bouton5 = 6;
 int bouton6 = 7;
 
-int Q1 = 1;
-int Q2 = 2;
-int Q3 = 3;
-int Q4 = 4;
-int Q5 = 5; 
+//initialisation des variables pour le mode jeu
+int question_precedente = 0;
+int question_precedente2 = 0;
+int question_precedente3 = 0;
+int question_precedente4 = 0;
+int question = 0;
+unsigned long Temps;
 
+//fonction bouton
 int bouton() {
-  int boutonAppuye = 0;
-// Bouton 1
-  if (digitalRead(bouton1) == HIGH){ 
-    boutonAppuye = 1;
+
+  // Bouton 1
+  if (digitalRead(bouton1) == LOW){ 
+    return 1;
   }
 
-// Bouton 2  
-  if (digitalRead(bouton2) == HIGH){   
-    boutonAppuye = 2;
+  // Bouton 2  
+  if (digitalRead(bouton2) == LOW){   
+    return 2;
   }
  
-// Bouton 3  
-  if (digitalRead(bouton3) == HIGH){
-    boutonAppuye = 3;   
+  // Bouton 3  
+  if (digitalRead(bouton3) == LOW){
+    return 3;   
   }
   
-// Bouton 4  
-  if (digitalRead(bouton4) == HIGH){  
-    boutonAppuye = 4; 
+  // Bouton 4  
+  if (digitalRead(bouton4) == LOW){  
+    return 4; 
   }
   
-// Bouton 5  
-  if (digitalRead(bouton5) == HIGH){ 
-    boutonAppuye = 5;
+  // Bouton 5  
+  if (digitalRead(bouton5) == LOW){ 
+    return 5;
   }
    
-// Bouton 6  
-  if (digitalRead(bouton6) == HIGH){
-    boutonAppuye = 6;  
+  // Bouton 6  
+  if (digitalRead(bouton6) == LOW){
+    return 6;  
   }
-  return boutonAppuye;
+  return 0;
 }
-
-
-void message(int valeur){
-  Serial.println(11);
-}
-
-
-
 
 void setup() {
   pinMode(bouton1, INPUT);   
@@ -61,59 +60,152 @@ void setup() {
   pinMode(bouton5, INPUT);   
   pinMode(bouton6, INPUT);
   Serial.begin(9600);
+  mp3_set_serial (Serial);    //Mode commande par la liaison série
+  delay(1);         // delay 1ms to set volume
+  mp3_set_volume (25);     // de 0~30 – Une limite de 15 ne doit pas être dépassée dans un premier temps
 }
 
-void loop(){
- /*Serial.println(bouton());
- delay(500);*/
- if (bouton() == 6){
-   mode_jeu();
- }
- else{
-  mode_apprentissage();
- }
-}
-
-
-void mode_apprentissage() {
-switch(bouton()){ 
- case 1: {message(1);}
- case 2: {message(2);}
- case 3: {message(3);}
- case 4: {message(4);}
- case 5: {message(5);}
- }
-}
-
-void mode_jeu() {
-  int Question=random(1,6);
-  switch(Question){
-    case 1: {
-      while(bouton()!= 1){
-        message(11);      //message vocal
-        delay(5000);
-        if (bouton()==2 or bouton() ==3 or bouton()==4
-        message(20);      //Message "Mauvaise réponse, réessaie"
-        Serial.println("Mauvaise réponse, réessaie");
-        delay(1000);
-      }
-      message(21);         //Message "Bonne réponse!"
-      delay(1000);
-      Serial.println("Bonne réponse!");
-    }
-    case 2: {      while(bouton()!= 2){
-        message(12);      //message vocal
-        delay(5000);
-        message(20);      //Message "Mauvaise réponse, réessaie"
-        Serial.println("Mauvaise réponse, réessaie");
-        delay(1000);
-      }
-      message(21);         //Message "Bonne réponse!"
-      delay(1000);
-      Serial.println("Bonne réponse!");
-    }
-    case 3: {message(13);}
-    case 4: {message(14);}
-    case 5: {message(15);}
+void MessageVocal(int valeur){
+  if (valeur == 0){     //pas de bouton appuyé
+    Serial.println("pas de bouton appuyé");
   }
+  else{   //Messages vocaux de 1 à 20
+    mp3_play (valeur);    //Message en fonction du bouton appuyer
+    delay(250);   //attendre 250 milisecondes
+    Serial.print("Message : ");
+    Serial.println(valeur);
+    delay(250);   //attendre 250 milisecondes
+  }
+}
+
+//fonction pour compléter le mode jeu
+void Repondre(int reponseAttendue){     //reponseAttendue prend la valeur de la question tirée au hasard 
+  int reponse = 0;    //inisialisation de reponse
+  MessageVocal(reponseAttendue+10);    //Message question
+  delay(3000);      //attendre 3 secondes
+  MessageVocal(17);     //Message "Appuyez sur l'un des 5 boutons"
+  Temps = millis();   //c'est partis pour 2 minutes
+  while(((millis()-Temps)<60000) && (reponse != reponseAttendue)) {    //tant que le temps est inférieur à 2 minutes ET que la réponse n'est pas la réponse attendu
+    Serial.print("Temps: ");
+    Serial.println(millis()-Temps);
+    reponse = bouton();     //reponse prend la valeur du bouton
+    Serial.print("reponse: ");
+    Serial.println(reponse);
+    if((reponse != 0) && (reponse!= reponseAttendue) && (reponse != 6)){    //Si la réponse n'est pas 0 ET si la réponse n'est pas la réponse attendu ET si la réponse n'est pas 6
+       MessageVocal(reponse);   //répète la réponse de l'utilisateur
+       if (reponse == 1){
+        delay(4000);     //attendre 4 secondes
+        MessageVocal(9);      //Message "Mauvaise réponse, réessaie !"
+       }
+       if (reponse == 2){
+        delay(6000);     //attendre 6 secondes
+        MessageVocal(9);      //Message "Mauvaise réponse, réessaie !"
+       }
+       if (reponse == 3 || reponse == 4){
+        delay(6000);     //attendre 6 secondes
+        MessageVocal(9);      //Message "Mauvaise réponse, réessaie !"
+       }
+       if (reponse == 5){
+        delay(3000);     //attendre 3 secondes
+        MessageVocal(9);      //Message "Mauvaise réponse, réessaie !"
+       }
+      delay(2000);     //attendre 2 secondes
+       Temps = millis();      //c'est reparti pour 2 minutes
+       MessageVocal(reponseAttendue+10);    //Message question
+       delay(3000);   //attendre 3 secondes
+       MessageVocal(17);    //Message "Appuyez sur l'un des 5 boutons"
+    }
+    if(((millis()-Temps)>=30000) && ((millis()-Temps)<=31000)){     //Si le temps passé sans que l'utilisateur réponde est de 30 secondes
+      MessageVocal(20);     // Message "Il te reste 30 secondes pour répondre"
+      delay(500);   //attendre 0.5 secondes
+    }
+    else if(((millis()-Temps)>=50000) && ((millis()-Temps)<=51000)){     //Si le temps passé sans que l'utilisateur réponde est d'1 minute
+      MessageVocal(18);     // Message "Il te reste 10 secondes pour répondre"
+      delay(500);   //attendre 0.5 secondes
+    }
+    else if(((millis()-Temps)>=55000) && ((millis()-Temps)<=56000)){     //Si le temps passé sans que l'utilisateur réponde est d'1 minute et 30 secondes
+    MessageVocal(19);     // Message "Il te reste 5 secondes pour répondre"
+    delay(500);   //attendre 0.5 secondes
+    } 
+  }
+  if(reponse == reponseAttendue){     //Si la réponse est la réponse attendu
+      MessageVocal(reponseAttendue);    //répète la réponse de l'utilisateur
+      if (reponseAttendue == 1){
+        delay(4000);    //attendre 4 secondes
+        MessageVocal(8);      // Message "Bonne réponse!"
+      }
+      if (reponseAttendue == 3 || reponseAttendue == 4 || reponseAttendue == 2){
+        delay(6000);    //attendre 6 secondes
+        MessageVocal(8);      // Message "Bonne réponse!"
+      }
+      if (reponseAttendue == 5){
+        delay(3000);    //attendre 3 secondes
+        MessageVocal(8);      // Message "Bonne réponse!"
+      }
+      delay(1500);    //attendre 1,5 secondes
+    }
+  if((millis()-Temps)>=60000){     //Si le temps passé sans que l'utilisateur réponde est dépassé (2 minutes)
+    MessageVocal(10);     // Message "Le temps est écoulé"
+    delay(2000);      //attendre 2 secondes
+  }
+    question_precedente4 = question_precedente3;
+    question_precedente3 = question_precedente2;
+    question_precedente2 = question_precedente;
+    question_precedente = reponseAttendue;    //question_precedente prend la valeur de la question au quel l'utilisateur vient de répondre
+}
+
+//fonction principale
+void loop(){
+  int choix = bouton();   //choix prend la valeur du bouton sur lequel l'utilisateur vient d'appuyer
+  if (choix == 6){    //Si le choix est égale à 6
+    Mode_jeu();   //fonction "mode jeu"
+  }
+  else{
+    Mode_apprentissage();   //fonction "mode apprentissage"
+ }
+}
+
+//Mode apprentissage
+void mode_apprentissage() {
+  if (bouton() != 6){
+    Serial.println("Mode Apprentiisage");
+    MessageVocal(16);   //Message "Mode apprentissage"
+    delay(1500);    //attendre 1,5 secondes
+    MessageVocal(7);    //Message "Appuyez sur l'un des 5 boutons"
+    Temps = millis();   //c'est partis pour 15 secondes
+    while(bouton() != 6){   //tant que le bouton appuyer n'est pas le 6ème
+      if (15000<=(millis()-Temps)){     //Si le temps écouler est supérieur ou égal à 15 secondes
+        MessageVocal(7);    //Message "Appuyez sur l'un des 5 boutons"
+        Temps = millis();   //c'est repartis pour 15 secondes
+      }
+        else if(bouton()!= 0){    //Si l'utilisateur à appuyer sur un bouton 
+          MessageVocal(bouton());  //envoyer la valeur du bouton appuyer à la fonction MessageVocal
+          Temps = millis();   //c'est repartis pour 15 secondes
+        }
+    }
+ }
+}
+
+//Mode jeu
+void mode_jeu() {
+  Serial.println("Mode jeu");
+  MessageVocal(6);    //Message "Mode jeu"
+  delay(1000);    //attendre 1 seconde
+  Serial.print("question précédente : ");
+  Serial.println(question_precedente);
+  Serial.print("question précédente 2 : ");
+  Serial.println(question_precedente2);
+  Serial.print("question précédente 3 : ");
+  Serial.println(question_precedente3);  
+  Serial.print("question précédente 4 : ");
+  Serial.println(question_precedente4);
+  question = random(1, 6);    //question prend une veleur au hasard entre 1 (compris) et 6 (non compris)
+  Serial.print("question : ");
+  Serial.println(question);
+  while (question_precedente == question || question_precedente2 == question || question_precedente3 == question|| question_precedente4 == question){   //Si la question précédente est égale à la question tiré
+    question = random(1, 6);      //retire une question au hasard entre 1 (compris) et 6 (non compris)
+    Serial.print("question : ");
+    Serial.println(question);
+  }
+  Repondre(question);   //envoyer la valeur de question à la fonction Repondre
 }
